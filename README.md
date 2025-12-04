@@ -262,13 +262,35 @@ Example `launch.json`:
 * Accessed through fixtures
 
 Example:
-
+Inside conftest.py file
 ```python
-@pytest.fixture
-def power_level(request):
-    return request.param
+PARAM_MAP = {
+    "test_wait_until_settled": {
+        "frequency": [1e9, 2e9, 3e9],
+        "power_level": [-10.0, -5.0],
+    },
+    "test_attribute_set_float_attribute": {
+        "power_level": [round(x, 2) for x in np.arange(-10.0, 5.0, 1.3)],
+    },
+    "test_attribute_set_power_level":{
+        "power_level": [-30.0, -20.0, -10.0, 0.0],
+    }
+}
 ```
-
+Inside Test File
+```python
+@pytest.mark.critical
+    @pytest.mark.attribute
+    def test_attribute_set_float_attribute(self,power_level=None):
+        if use_simulated_session:
+            with nirfsg.Session(simulated_5841_name, options=f"Simulate=1, DriverSetup=Model:{simulated_5841_model}") as rfsg_device_session:
+                rfsg_device_session.power_level = -10.0 if not power_level else power_level
+                assert rfsg_device_session.power_level == -10.0 if not power_level else power_level
+        else:
+            with nirfsg.Session(real_hw_resource_name) as rfsg_device_session:
+                rfsg_device_session.power_level = -10.0 if not power_level else power_level
+                assert rfsg_device_session.power_level == -10.0 if not power_level else power_level
+```
 ---
 
 ### **8.4 Execution Order**
